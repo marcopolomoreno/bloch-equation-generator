@@ -1,6 +1,18 @@
 Bloch Equation Generator (SimuFísica Platform) - Submission Package
 ===================================================================
 
+## 📄 Related Publication
+
+For a detailed description of the software and its applications, refer to the following manuscript:
+
+**M. P. M. de Souza, G. H. H. Pavão, A. A. C. de Almeida, S. S. Vianna**,  
+*The Bloch Equation Generator – SimuFísica*,  
+arXiv:2506.01108 [quant-ph]  
+[https://doi.org/10.48550/arXiv.2506.01108](https://doi.org/10.48550/arXiv.2506.01108)
+
+Please cite this work if you use the Bloch Equation Generator in your research.
+
+
 License:
 --------
 This software is licensed under the MIT License.
