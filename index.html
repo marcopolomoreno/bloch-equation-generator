@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+	<html lang="en">
+		
+	<head>
+		<title>Bloch equation generator - SimuFísica</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="maximum-scale=1, width=device-width, initial-scale=1">
+		<meta name="description" content="Optical Bloch equation generator application.">
+		<meta name="keywords" content="bloch equations, Bloch equation generator, density matrix, three-level system, source code, C language, rotating-wave approximation, runge-kutta method, application">
+		<meta name="rights" content="Marco Polo Moreno de Souza">
+		<meta name="author" content="Marco Polo Moreno de Souza">
+
+		<link rel="shortcut icon" type="image/x-icon" href="icones/favicon.ico">
+		<link rel="apple-touch-icon" href="icones/apple-touch-icon.png">
+		<link rel="apple-touch-icon" href="icones/apple-touch-icon-57x57.png">
+		<link rel="apple-touch-icon" href="icones/apple-touch-icon-72x72.png">
+		<link rel="apple-touch-icon" href="icones/apple-touch-icon-76x76.png">
+		<link rel="apple-touch-icon" href="icones/apple-touch-icon-114x114.png">
+		<link rel="apple-touch-icon" href="icones/apple-touch-icon-120x120.png">
+		<link rel="apple-touch-icon" href="icones/apple-touch-icon-144x144.png">
+		<link rel="apple-touch-icon" href="icones/apple-touch-icon-180x180.png">
+
+		<!-- <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"> -->
+
+		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+		<link rel="stylesheet" href="assets/css/mainApp.css?v=4">		
+
+		<link rel="stylesheet" href="assets/css/bootstrap.min.css">
+		<link rel="stylesheet" href="assets/css/slider-range.css?v=2">
+
+		<script src="assets/js/verifTelaCheia.js"></script>
+		<script src="assets/js/loading.js"></script>
+
+		<link rel="stylesheet" href="assets/css/barraInferiorDesktop.css?v=4">
+		<link rel="stylesheet" href="assets/css/mainApp2.css?v=5">
+
+
+    	<style>
+			html, body {margin: 0; height: 100%; overflow: hidden}
+
+      		:root{
+        		--Lx: 600px;
+        		--Ly: 600px;
+
+				--sat: env(safe-area-inset-top);
+				--sar: env(safe-area-inset-right);
+				--sab: env(safe-area-inset-bottom);
+				--sal: env(safe-area-inset-left);
+
+				touch-action: var(--acao);
+				height: 100%;
+			}
+      
+			#main{
+				display: none;
+			}
+
+			.disabled {
+				pointer-events: none;    /* impede clique */
+				opacity: 0.5;            /* aparência esmaecida */
+				cursor: not-allowed;     /* cursor de "proibido" */
+			}
+      </style>
+		
+	</head>
+	<body>
+		<script src="assets/js/mobile.js?v=4"></script>
+
+	<div id="wrapper">
+		
+		<div class="loader" id="loader"></div>
+		<script>
+			if (!isOnline && isMobile.Android())
+				document.getElementById("loader").remove()
+		</script>
+
+		<!-- Main -->
+		<div id="main">
+			<div class="inner" style="margin-top: 10px;">
+				
+				<div id="principal" class="grid-container">
+
+					<div id="canvas" onmousedown="pressMouse()" onmousemove="posicaoMouse()" onmouseup="saiuMouse()" ontouchstart="pressMouse()" ontouchmove="posicaoMouse()" ontouchend="saiuMouse()">
+					</div>
+				
+	
+
+					<div id="parametros" class="grid-container">
+
+						<div id="div-N" class="bloco item">
+							<input type="range" min="2" max="30" value="4" step="1" onchange="alterarCheckbox()" class="slider" id="rangeN" aria-label="Number of system levels">
+							<span class="mao" data-toggle="popover" title="" data-content="Number of system levels" data-placement="bottom">
+								Levels = <span id="N"></span> 
+							</span>
+						</div>
+
+
+						<div id="checkbox" class="bloco grid-container" style="grid-template-columns: auto auto;">
+							<div class="form-check form-switch item">
+								<input class="form-check-input" type="checkbox" id="switchOndaGirante" checked="" onclick="ondaGirante()">
+								<label class="form-check-label" for="switchOndaGirante">Rotating wave</label>
+							</div>
+
+							<div class="form-check form-switch item">
+								<input class="form-check-input" type="checkbox" id="switchMisturaOndas" onclick="misturaOndas()" disabled>
+								<label class="form-check-label" for="switchMisturaOndas">Wave mixing (beta)</label>
+							</div>
+						</div>
+					
+
+
+						<div class="bloco" hidden="">
+
+							<div style="text-align: center;">
+								Rabi Frequencies
+							</div>
+
+							<div id="frequencias-rabi" class="grid-container">
+
+							</div>
+
+						</div>
+						
+
+						<div class="bloco" hidden="">
+
+							<div style="text-align: center;">Decays
+							</div>
+
+							<div id="transicoes-permitidas" class="grid-container">
+
+							</div>
+
+						</div>
+			
+					</div>
+
+				</div>
+
+
+
+
+				<!-- Modal equações de Bloch -->
+				<div class="modal fade" id="btnBloch" tabindex="-1" role="dialog" aria-labelledby="btnBloch">
+					<div class="modal-dialog" role="document" style="width: 1030px;">
+					<div class="modal-content">
+						<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+						<h4 class="modal-title" id="modalBloch">Bloch equations</h4>
+						</div>
+						<div class="modal-body">
+
+							<div id="equacoesBloch">
+
+							</div>
+
+							<div class="bloco" style="margin-top: 20px;">
+
+								<div style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
+									Source code download (C language):
+								</div>
+
+								<div id="botoes" class="grid-container" style="margin-bottom: 20px;">
+
+									<div class="grid-item-botoes">
+										<button type="button" class="btn btn-primary btn-lg active" onclick="gerarEquacoesBlochRealImaginaria(); downloadCodigoFonteTempo();">Temporal evolution
+											
+										</button>
+									</div>
+
+									<div class="grid-item-botoes" hidden="">
+										<button type="button" class="btn btn-primary btn-lg active" onclick="downloadCodigoFonteTempoMisturaOndas();">Temporal evolution
+											
+										</button>
+									</div>
+
+									<div class="grid-item-botoes">
+										<button type="button" class="btn btn-primary btn-lg active" onclick="gerarEquacoesBlochRealImaginaria(); downloadCodigoFonteDessintonia();">Detuning
+											
+										</button>
+									</div>
+
+									<div class="grid-item-botoes" hidden="">
+										<button type="button" class="btn btn-primary btn-lg active" onclick="downloadCodigoFonteDessintoniaMisturaOndas();">Detuning
+											
+										</button>
+									</div>
+
+								</div>
+
+
+								<div id="controles" class="grid-container bloco" style="background-color:rgb(243, 240, 237); grid-template-columns: 1fr 1fr; max-width: 700px; margin: 20px auto; gap: 20px">
+									<div id="div-tempo" class="item">
+										<input type="range" min="0.01" max="10" value="1" step="0.01" class="slider" id="rangeTempoIntegracao" aria-label="Tempo de integração">
+										<span class="mao" data-toggle="popover" title="" data-content="Total temporal integration time" data-placement="top">
+											Integration time</span> = <label id="tempoIntegracao" onclick="selectText(this.id)" inputmode="numeric" pattern="[0-9]*"></label> μs										
+									</div>
+
+									<div id="div-dessintonia" class="item">
+										<input type="range" min="10" max="1000" value="200" step="1" class="slider" id="rangeLarguraEspectro" aria-label="Largura do espectro">
+										<span class="mao" data-toggle="popover" title="" data-content="Full Spectrum Width" data-placement="top">
+											Spectrum width</span> = <label id="larguraEspectro" onclick="selectText(this.id)" inputmode="numeric" pattern="[0-9]*"></label> MHz										
+									</div>
+
+									<div id="div-passo-temporal" class="item">
+										<input type="range" min="0.001" max="100" value="5" step="0.001" class="slider" id="rangePassoTemporal" aria-label="Temporal integration step">
+										<span class="mao" data-toggle="popover" title="" data-content="Runge-Kutta Pass (h)" data-placement="top">
+											Temporal integration step</span> = <label id="passoTemporal" onclick="selectText(this.id)" inputmode="numeric" pattern="[0-9]*"></label> ps										
+									</div>
+
+									<div id="div-passo-dessintonia" class="item">
+										<input type="range" min="0.1" max="10" value="1" step="0.1" class="slider" id="rangePassoDessintonia" aria-label="Passo da dessintonia">
+										<span class="mao" data-toggle="popover" title="" data-content="Spectrum resolution" data-placement="top">
+											Detuning step</span> = <label id="passoDessintonia" onclick="selectText(this.id)" inputmode="numeric" pattern="[0-9]*"></label> MHz										
+									</div>
+								</div>
+
+							</div>
+
+
+							<div class="bloco" style="margin-top: 20px;">
+								<div style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
+									Options to run the source code in C:
+								</div>
+
+								<ul style="text-align: center; margin-top: 20px; margin-bottom: 20px; list-style-type: none; padding-left: 0;">
+									<li><a href="https://www.bloodshed.net" target="_blank" rel="noopener">
+											Bloodsheed C++ (Windows)
+										</a>
+									</li>
+									<li><a href="https://www.onlinegdb.com/online_c_compiler" target="_blank" rel="noopener">
+											Online C compiler
+										</a>
+									</li>
+								</ul>
+							</div>
+					
+						</div>
+						<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal" aria-label="Close">Close</button>
+						</div>
+					</div>
+					</div>
+				</div>
+				<!-- Fim do botão -->
+
+
+
+
+				<!-- Modal Info-->
+				<div class="modal fade" id="btnInfo" tabindex="-1" role="dialog" aria-labelledby="btnInfo">
+					<div class="modal-dialog" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+						<h4 class="modal-title" id="myModalInfo">
+							Information
+						</h4>
+						</div>
+						<div class="modal-body">
+
+							<div id="texto1">
+								<p>
+									This program generates the optical Bloch equations for a system of N levels, as well as 
+									the source code in C language for the numerical solution of equations via the Runge-Kutta method 
+									fourth order.
+								</p>
+
+								<p>How to use:</p>
+
+								<ol>
+									<li>
+										Choose the number of levels (N) of the system.
+									</li>
+
+									<li>
+										Configure the system by defining the positions of the states (click and drag the states).
+									</li>
+
+									<li>
+										Choose non-zero Rabi frequencies and allowed decays.
+									</li>
+
+									<li>
+										Click "Generate Bloch equations".
+									</li>
+								</ol>
+							</div>
+
+						</div>
+						<div class="modal-footer">
+							<div class="grid-container">
+								<div class="grid-item" style="text-align: left">
+									Version: <span id="versao">1.4.3</span> (03/06/2025)
+
+									<div onclick="revelar()" id="comoCitar">How to quote this software? </div>
+									<div id="citacao">Marco P. M. de Souza, <i id="tituloPagina"></i>. 
+										Accessed at <span id="dataAtual"></span> [Online]. 
+										Available at: https://simufisica.com/en/tools/bloch-equation-generator/.
+									</div>
+								</div>
+
+								<div class="grid-item">
+									<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+								</div>
+							</div>
+						</div>
+					</div>
+					</div>
+				</div>
+				<!-- Fim do botão -->
+
+							
+							
+			</div>
+		</div>
+	</div>
+
+
+
+	<nav class="navBottom" id="barraInferior">
+		<span id="btnGerarEquacoesBloch" onclick="gerarEquacoesBloch()" data-toggle="modal" data-target="#btnBloch" aria-label="Salvar">
+			<i class="far fa-file-alt" style="color: #0059b3"></i>
+			<div>Bloch Eq.</div>
+		</span>
+
+		<div id="btnExemplos" class="btn-group dropup">
+			<span data-toggle="dropdown" aria-label="Exemplos">
+				<i class="far fa-plus-square"></i>
+				<div>Examples</div>
+			</span>
+			<ul class="dropdown-menu">
+				<li><span onclick="doisNiveis()">Two-level</span></li>
+				<li role="separator" class="divider"></li>
+				<li><span onclick="tresNiveisLambda()">Λ-type three-level</span></li>
+				<li><span onclick="tresNiveisCascata()">Cascade-type three-level</span></li>
+				<li><span onclick="tresNiveisV()">V-type three-level</span></li>
+			</ul>
+		</div>
+
+		<span id="btnCentralizar" onclick="centralizar()">
+			<i class="fas fa-arrows-alt"></i>
+			<div>Center</div>
+		</span>
+
+		<a href="https://simufisica.com/en/">
+			<i class="fa fa-home"></i>
+			<div>Home</div>
+		</a>
+
+		<span onclick="resetarTudo()">
+			<i class="fa fa-refresh"></i>
+			<div>Reset</div>
+		</span>
+
+		<span id="navDesktop" onclick="toggleFullScreen(document.body)">
+			<i class="fa fa-desktop"></i>
+			<div>Full screen</div>
+		</span>
+
+		<span data-toggle="modal" data-target="#btnInfo">
+			<i class="fa fa-info-circle"></i>
+			<div>Info</div>
+		</span>
+
+		<span id="navSalvar" data-toggle="modal" data-target="#btnAbrirSalvar" aria-label="Salvar" class="disabled">
+			<i class="fa fa-save" disabled></i>
+			<div>Save</div>
+		</span>
+	</nav>
+	
+
+	<script>
+		function onJqueryLoadError()
+		{
+			document.write('<scr' + 'ipt src="assets/js/jquery.min.js"></scr' + 'ipt>');
+		}
+	</script>
+	<script src="https://code.jquery.com/jquery-3.7.1.slim.min.js" integrity="sha256-kmHvs0B+OpCW5GVHUNjv9rOmY0IvSIRcf7zGUDTDQM8=" crossorigin="anonymous" onerror="onJqueryLoadError()"></script>
+
+	<script src="assets/js/b6d668a661.js"></script>
+	<script src="assets/js/parametrosEditaveis.js?v=3"></script>
+	<script src="assets/js/telaCheia.js?v=3"></script>
+	<script src="assets/js/drawSeta.js"></script>
+	<script src="b8d451a227.js?v=6"></script>
+	<script src="assets/js/btnHome.js?v=4"></script>
+    <script src="assets/js/mainApp.js?v=7"></script>
+
+	<script src="download-codigo-fonte/tempo.js?v=3"></script>
+	<script src="download-codigo-fonte/dessintonia.js?v=3"></script>
+		
+    <script src="assets/js/bootstrap.min.js"></script>
+    <script src="assets/js/tooltip.js"></script>
+
+	<script src="assets/js/MathJax.js?config=TeX-AMS_HTML-full"></script>
+	<script src="assets/js/MathJaxConfig.js" type="text/x-mathjax-config"></script>
+	<script type="text/x-mathjax-config">
+		MathJax.Hub.Config({  tex2jax: {inlineMath: [["$","$"]]}  });
+	</script>	
+
+</body>
+</html>
